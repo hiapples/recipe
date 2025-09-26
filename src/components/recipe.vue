@@ -26,7 +26,7 @@
         <span>罐</span>
       </div>
 
-      <!-- 上排（水平）：主顆數/重量 + 額外顆數（0 也顯示） -->
+      <!-- 上排（水平）：主顆數/重量 + 額外顆數 + 細砂糖（0 也顯示） -->
       <div class="meta-row mt-1">
         <template v-if="current.count">
           <span>{{ current.name }} <strong>{{ mainFruitCount }}</strong> {{ current.count.unit }}</span>
@@ -35,8 +35,10 @@
           <span>{{ current.headWeight.label }} <strong>{{ totalHeadWeight }}</strong> {{ current.headWeight.unit }}</span>
         </template>
 
+        <span>細砂糖 <strong>{{ sugarCurrent }}</strong> g</span>
+
         <span v-if="lemonAddonShown">檸檬 <strong>{{ fmt1(0.5 * nCurrent) }}</strong> 顆</span>
-        <span v-if="appleAddonShown"> 蘋果 <strong>{{ fmt1(0.2 * nCurrent) }}</strong> 顆</span>
+        <span v-if="appleAddonShown">蘋果 <strong>{{ fmt1(0.2 * nCurrent) }}</strong> 顆</span>
       </div>
 
       <!-- 細項食譜（當前口味總量） -->
@@ -47,7 +49,7 @@
       </ul>
     </div>
 
-    <!-- 全部品項合計 + 價格 -->
+    <!-- 全部品項合計 + 價格（清單列 6 種水果 + 砂糖最後一項） -->
     <div class="rounded-lg border p-4">
       <h3 class="font-semibold mb-2">全部品項合計</h3>
       <ul class="list-disc pl-5 space-y-1">
@@ -75,6 +77,11 @@
           葡萄：<strong>{{ totalsAll.fruitTotals.grape }}</strong> g
           — <strong>{{ money(itemCosts.grape) }}</strong> 元
         </li>
+        <!-- 砂糖作為清單最後一項 -->
+        <li>
+          細砂糖：<strong>{{ sugarAll }}</strong> g
+          — <strong>{{ money(itemCosts.sugar) }}</strong> 元（@ {{ PRICE.sugarPerKg }} 元/kg）
+        </li>
       </ul>
 
       <div class="mt-3 flex items-center justify-between">
@@ -93,7 +100,7 @@ import { ref, reactive, computed } from 'vue'
 /* ---------------- Config ---------------- */
 const MIN_JARS = 0
 
-// 單價
+// 價格
 const PRICE = {
   lemonPerPiece: 12.5,        // 檸檬 1 顆 12.5 元
   orangePerPiece: 23,         // 柳橙 1 顆 23 元
@@ -101,7 +108,12 @@ const PRICE = {
   applePerPiece: 30,          // 蘋果 1 顆 30 元
   blueberryPerGram: 69 / 125, // 藍莓 125 g 69 元 → 每克
   grapePerGram: 133 / 500,    // 葡萄 500 g 133 元 → 每克
+  sugarPerKg: 44,             // 細砂糖 1kg 44 元
 }
+PRICE.sugarPerGram = PRICE.sugarPerKg / 1000  // → 0.044 元/g
+
+// 每罐砂糖用量（固定 120g）
+const SUGAR_PER_JAR = 120
 
 // 配方（每 1 罐 250g 成品）
 const recipes = {
@@ -127,7 +139,7 @@ const recipes = {
   },
   grapefruit: {
     name: '葡萄柚',
-    count: { perJar: 1.7, unit: '顆' }, // ← 已改為 1.7 顆/罐
+    count: { perJar: 1.7, unit: '顆' }, // 1.7 顆/罐
     ingredients: [
       { label: '葡萄柚汁', perJar: 150, unit: 'g' },
       { label: '細砂糖', perJar: 120, unit: 'g' },
@@ -158,7 +170,7 @@ const recipes = {
   },
   grape: {
     name: '葡萄',
-    headWeight: { label: '葡萄', perJar: 260, unit: 'g' }, // 210 + 40
+    headWeight: { label: '葡萄', perJar: 260, unit: 'g' }, // 210 + 40（你上一版改 260）
     ingredients: [
       { label: '葡萄肉', perJar: 210, unit: 'g' },
       { label: '細砂糖', perJar: 120, unit: 'g' },
@@ -216,6 +228,9 @@ const totalHeadWeight = computed(() => {
   return Math.round(current.value.headWeight.perJar * nCurrent.value + 1e-9)
 })
 
+// 當前口味砂糖（meta-row 顯示）
+const sugarCurrent = computed(() => Math.round(SUGAR_PER_JAR * nCurrent.value + 1e-9))
+
 const hasLemonJuiceCurrent = computed(() =>
   (current.value.ingredients || []).some(i => i.label === '檸檬汁')
 )
@@ -239,11 +254,14 @@ const totalsAll = computed(() => {
   const headWeights = { blueberry: 0, grape: 0 }
   let lemonExtra = 0
   let appleExtra = 0
+  let totalJars = 0
 
   for (let i = 0; i < recipeOrder.length; i++) {
     const key = recipeOrder[i]
     const cfg = recipes[key]
     const n = Math.max(MIN_JARS, Math.floor(jarCounts[key]))
+
+    totalJars += n
 
     if (cfg.count) {
       mainCounts[key] += cfg.count.perJar * n
@@ -265,13 +283,18 @@ const totalsAll = computed(() => {
     grape: headWeights.grape,         // g
   }
 
-  return { fruitTotals }
+  // 砂糖總量（g）
+  const sugar = Math.round(SUGAR_PER_JAR * totalJars + 1e-9)
+
+  return { fruitTotals, totalJars, sugar }
 })
 
 /* ---------------- Pricing ---------------- */
-function money(x) {
-  return Math.round(Number(x) + 1e-9) // 四捨五入到元
-}
+function money(x) { return Math.round(Number(x) + 1e-9) } // 四捨五入到元
+
+// 砂糖總克數（清單要顯示）
+const sugarAll = computed(() => totalsAll.value.sugar)
+
 const itemCosts = computed(() => {
   const t = totalsAll.value.fruitTotals
   const lemon = t.lemon * PRICE.lemonPerPiece
@@ -280,8 +303,11 @@ const itemCosts = computed(() => {
   const apple = t.apple * PRICE.applePerPiece
   const blueberry = t.blueberry * PRICE.blueberryPerGram
   const grape = t.grape * PRICE.grapePerGram
-  const total = lemon + orange + grapefruit + apple + blueberry + grape
-  return { lemon, orange, grapefruit, apple, blueberry, grape, total }
+
+  const sugar = sugarAll.value * PRICE.sugarPerGram
+
+  const total = lemon + orange + grapefruit + apple + blueberry + grape + sugar
+  return { lemon, orange, grapefruit, apple, blueberry, grape, sugar, total }
 })
 </script>
 
