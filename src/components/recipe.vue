@@ -80,7 +80,7 @@
         <!-- 砂糖作為清單最後一項 -->
         <li>
           細砂糖：<strong>{{ sugarAll }}</strong> g
-          — <strong>{{ money(itemCosts.sugar) }}</strong> 元（@ {{ PRICE.sugarPerKg }} 元/kg）
+          — <strong>{{ money(itemCosts.sugar) }}</strong> 元
         </li>
       </ul>
 
