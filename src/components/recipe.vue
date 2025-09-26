@@ -25,7 +25,7 @@
         <button class="inline-btn" @click="inc">＋</button>
         <span>罐</span>
         <!-- 一罐 250g + 總成品重量（隨罐數變動） -->
-        <span class="muted"> {{PER_JAR_FINISHED }}g</span>
+        <span class="muted"> &nbsp;&nbsp;{{PER_JAR_FINISHED }}g</span>
       </div>
 
       <!-- 上排（水平）：主顆數/重量 + 額外顆數 + 細砂糖（0 也顯示） -->
