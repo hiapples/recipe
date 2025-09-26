@@ -24,6 +24,8 @@
         />
         <button class="inline-btn" @click="inc">＋</button>
         <span>罐</span>
+        <!-- 一罐 250g + 總成品重量（隨罐數變動） -->
+        <span class="muted">（一罐 {{ PER_JAR_FINISHED }}g，共 {{ finishedWeightCurrent }} g）</span>
       </div>
 
       <!-- 上排（水平）：主顆數/重量 + 額外顆數 + 細砂糖（0 也顯示） -->
@@ -99,18 +101,19 @@ import { ref, reactive, computed } from 'vue'
 
 /* ---------------- Config ---------------- */
 const MIN_JARS = 0
+const PER_JAR_FINISHED = 250 // 每罐成品重量 250g（顯示用）
 
 // 價格
 const PRICE = {
-  lemonPerPiece: 12.5,        // 檸檬 1 顆 12.5 元
-  orangePerPiece: 23,         // 柳橙 1 顆 23 元
-  grapefruitPerPiece: 20,     // 葡萄柚 1 顆 20 元
-  applePerPiece: 30,          // 蘋果 1 顆 30 元
-  blueberryPerGram: 69 / 125, // 藍莓 125 g 69 元 → 每克
-  grapePerGram: 133 / 500,    // 葡萄 500 g 133 元 → 每克
-  sugarPerKg: 44,             // 細砂糖 1kg 44 元
+  lemonPerPiece: 12.5,
+  orangePerPiece: 23,
+  grapefruitPerPiece: 20,
+  applePerPiece: 30,
+  blueberryPerGram: 69 / 125,
+  grapePerGram: 133 / 500,
+  sugarPerKg: 44,
 }
-PRICE.sugarPerGram = PRICE.sugarPerKg / 1000  // → 0.044 元/g
+PRICE.sugarPerGram = PRICE.sugarPerKg / 1000  // 0.044 元/g
 
 // 每罐砂糖用量（固定 120g）
 const SUGAR_PER_JAR = 120
@@ -139,7 +142,7 @@ const recipes = {
   },
   grapefruit: {
     name: '葡萄柚',
-    count: { perJar: 1.7, unit: '顆' }, // 1.7 顆/罐
+    count: { perJar: 1.7, unit: '顆' },
     ingredients: [
       { label: '葡萄柚汁', perJar: 150, unit: 'g' },
       { label: '細砂糖', perJar: 120, unit: 'g' },
@@ -170,7 +173,7 @@ const recipes = {
   },
   grape: {
     name: '葡萄',
-    headWeight: { label: '葡萄', perJar: 260, unit: 'g' }, // 210 + 40（你上一版改 260）
+    headWeight: { label: '葡萄', perJar: 260, unit: 'g' }, // 210 + 40
     ingredients: [
       { label: '葡萄肉', perJar: 210, unit: 'g' },
       { label: '細砂糖', perJar: 120, unit: 'g' },
@@ -230,6 +233,9 @@ const totalHeadWeight = computed(() => {
 
 // 當前口味砂糖（meta-row 顯示）
 const sugarCurrent = computed(() => Math.round(SUGAR_PER_JAR * nCurrent.value + 1e-9))
+
+// 罐數旁邊顯示的成品總重量
+const finishedWeightCurrent = computed(() => PER_JAR_FINISHED * nCurrent.value)
 
 const hasLemonJuiceCurrent = computed(() =>
   (current.value.ingredients || []).some(i => i.label === '檸檬汁')
@@ -344,6 +350,9 @@ const itemCosts = computed(() => {
   gap: 8px 16px;
   align-items: baseline;
 }
+
+/* 罐數旁邊淡色文字 */
+.muted { color: #6b7280; font-weight: normal; font-size: 0.875rem; }
 
 /* 隱藏 number 的上下箭頭（Chrome/Safari） */
 .inline-input::-webkit-outer-spin-button,
