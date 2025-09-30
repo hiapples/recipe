@@ -172,7 +172,7 @@ const recipes = {
   },
   grape: {
     name: '葡萄',
-    headWeight: { label: '葡萄', perJar: 250, unit: 'g' }, // 210 + 40
+    headWeight: { label: '葡萄', perJar: 250*1.125, unit: 'g' }, // 210 + 40
     ingredients: [
       { label: '葡萄肉', perJar: 210, unit: 'g' },
       { label: '細砂糖', perJar: 120, unit: 'g' },
