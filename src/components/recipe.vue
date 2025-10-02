@@ -24,10 +24,10 @@
         />
         <button class="inline-btn" @click="inc">＋</button>
         <!-- 一罐 250g + 總成品重量（隨罐數變動） -->
-        <span class="muted"> &nbsp;&nbsp;{{finishedWeightCurrent}}g</span>
+        <span class="muted"> &nbsp;&nbsp;{{ finishedWeightCurrent }}g</span>
       </div>
 
-      <!-- 上排（水平）：主顆數/重量 + 額外顆數 + 細砂糖（0 也顯示） -->
+      <!-- 上排（水平）：主顆數/重量 + 檸檬/蘋果加成（0 也顯示） -->
       <div class="meta-row mt-1">
         <template v-if="current.count">
           <span>{{ current.name }} <strong>{{ mainFruitCount }}</strong> {{ current.count.unit }}</span>
@@ -39,7 +39,6 @@
         <span>細砂糖 <strong>{{ sugarCurrent }}</strong> g</span>
 
         <span v-if="lemonAddonShown">檸檬 <strong>{{ fmt1(0.5 * nCurrent) }}</strong> 顆</span>
-        <span v-if="appleAddonShown">蘋果 <strong>{{ fmt1(0.2 * nCurrent) }}</strong> 顆</span>
       </div>
 
       <!-- 細項食譜（當前口味總量） -->
@@ -50,7 +49,7 @@
       </ul>
     </div>
 
-    <!-- 全部品項合計 + 價格（清單列 6 種水果 + 砂糖最後一項） -->
+    <!-- 全部品項合計 + 價格（清單列 3 種柑橘 + 藍莓 + 砂糖） -->
     <div class="rounded-lg border p-4">
       <h3 class="font-semibold mb-2">全部品項合計</h3>
       <ul class="list-disc pl-5 space-y-1">
@@ -67,16 +66,8 @@
           — <strong>{{ money(itemCosts.grapefruit) }}</strong> 元
         </li>
         <li>
-          蘋果：<strong>{{ fmt1(totalsAll.fruitTotals.apple) }}</strong> 顆
-          — <strong>{{ money(itemCosts.apple) }}</strong> 元
-        </li>
-        <li>
           藍莓：<strong>{{ totalsAll.fruitTotals.blueberry }}</strong> g
           — <strong>{{ money(itemCosts.blueberry) }}</strong> 元
-        </li>
-        <li>
-          葡萄：<strong>{{ totalsAll.fruitTotals.grape }}</strong> g
-          — <strong>{{ money(itemCosts.grape) }}</strong> 元
         </li>
         <!-- 砂糖作為清單最後一項 -->
         <li>
@@ -107,9 +98,7 @@ const PRICE = {
   lemonPerPiece: 12.5,
   orangePerPiece: 23,
   grapefruitPerPiece: 20,
-  applePerPiece: 30,
   blueberryPerGram: 69 / 125,
-  grapePerGram: 133 / 500,
   sugarPerKg: 44,
 }
 PRICE.sugarPerGram = PRICE.sugarPerKg / 1000  // 0.044 元/g
@@ -150,16 +139,6 @@ const recipes = {
       { label: '葡萄柚果肉', perJar: 70, unit: 'g' },
     ],
   },
-  apple: {
-    name: '蘋果',
-    count: { perJar: 1, unit: '顆' },
-    ingredients: [
-      { label: '蘋果泥', perJar: 200, unit: 'g' },
-      { label: '細砂糖', perJar: 120, unit: 'g' },
-      { label: '檸檬汁', perJar: 20, unit: 'cc' },
-      { label: '蘋果果肉', perJar: 40, unit: 'g' },
-    ],
-  },
   blueberry: {
     name: '藍莓',
     headWeight: { label: '藍莓', perJar: 200, unit: 'g' }, // 130 + 70
@@ -170,30 +149,17 @@ const recipes = {
       { label: '藍莓果肉', perJar: 70, unit: 'g' },
     ],
   },
-  grape: {
-    name: '葡萄',
-    headWeight: { label: '葡萄', perJar: 250*1.125, unit: 'g' }, // 210 + 40
-    ingredients: [
-      { label: '葡萄肉', perJar: 210, unit: 'g' },
-      { label: '細砂糖', perJar: 120, unit: 'g' },
-      { label: '檸檬汁', perJar: 20, unit: 'cc' },
-      { label: '蘋果泥', perJar: 40, unit: 'g' },
-      { label: '葡萄果肉', perJar: 40, unit: 'g' },
-    ],
-  },
 }
 
-// 下拉排序
-const recipeOrder = ['lemon', 'orange', 'grapefruit', 'apple', 'blueberry', 'grape']
+// 下拉排序（已移除 apple, grape）
+const recipeOrder = ['lemon', 'orange', 'grapefruit', 'blueberry']
 
 /* ---------------- State ---------------- */
 const jarCounts = reactive({
   lemon: 0,
   orange: 0,
   grapefruit: 0,
-  apple: 0,
   blueberry: 0,
-  grape: 0,
 })
 const recipeKey = ref('lemon')
 
@@ -242,7 +208,6 @@ const hasLemonJuiceCurrent = computed(() =>
 const lemonAddonShown = computed(() =>
   hasLemonJuiceCurrent.value && recipeKey.value !== 'lemon'
 )
-const appleAddonShown = computed(() => recipeKey.value === 'grape')
 
 const totalIngredients = computed(() => {
   const list = current.value.ingredients || []
@@ -255,10 +220,9 @@ const totalIngredients = computed(() => {
 
 /* ---------------- Totals (all flavors) ---------------- */
 const totalsAll = computed(() => {
-  const mainCounts = { lemon: 0, orange: 0, grapefruit: 0, apple: 0 }
-  const headWeights = { blueberry: 0, grape: 0 }
+  const mainCounts = { lemon: 0, orange: 0, grapefruit: 0 }
+  const headWeights = { blueberry: 0 }
   let lemonExtra = 0
-  let appleExtra = 0
   let totalJars = 0
 
   for (let i = 0; i < recipeOrder.length; i++) {
@@ -276,16 +240,13 @@ const totalsAll = computed(() => {
 
     const hasLemon = (cfg.ingredients || []).some(x => x.label === '檸檬汁')
     if (hasLemon && key !== 'lemon') lemonExtra += 0.5 * n
-    if (key === 'grape') appleExtra += 0.2 * n
   }
 
   const fruitTotals = {
     lemon: mainCounts.lemon + lemonExtra,
     orange: mainCounts.orange,
     grapefruit: mainCounts.grapefruit,
-    apple: mainCounts.apple + appleExtra,
     blueberry: headWeights.blueberry, // g
-    grape: headWeights.grape,         // g
   }
 
   // 砂糖總量（g）
@@ -305,14 +266,12 @@ const itemCosts = computed(() => {
   const lemon = t.lemon * PRICE.lemonPerPiece
   const orange = t.orange * PRICE.orangePerPiece
   const grapefruit = t.grapefruit * PRICE.grapefruitPerPiece
-  const apple = t.apple * PRICE.applePerPiece
   const blueberry = t.blueberry * PRICE.blueberryPerGram
-  const grape = t.grape * PRICE.grapePerGram
 
   const sugar = sugarAll.value * PRICE.sugarPerGram
 
-  const total = lemon + orange + grapefruit + apple + blueberry + grape + sugar
-  return { lemon, orange, grapefruit, apple, blueberry, grape, sugar, total }
+  const total = lemon + orange + grapefruit + blueberry + sugar
+  return { lemon, orange, grapefruit, blueberry, sugar, total }
 })
 </script>
 
