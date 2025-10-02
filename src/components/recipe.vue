@@ -132,7 +132,7 @@ const recipes = {
     name: '葡萄柚',
     count: { perJar: 1.7, unit: '顆' },
     ingredients: [
-      { label: '葡萄柚汁', perJar: 140, unit: 'g' },
+      { label: '葡萄柚汁', perJar: 150, unit: 'g' },
       { label: '細砂糖', perJar: 120, unit: 'g' },
       { label: '檸檬汁', perJar: 20, unit: 'cc' },
       { label: '葡萄柚皮', perJar: 50, unit: 'g' },
