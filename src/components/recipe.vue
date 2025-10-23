@@ -114,7 +114,7 @@ const recipes = {
     ingredients: [
       { label: '檸檬汁', perJar: 180, unit: 'g' },
       { label: '細砂糖', perJar: 120, unit: 'g' },
-      { label: '檸檬皮', perJar: 30, unit: 'g' },
+      { label: '檸檬皮', perJar: 25, unit: 'g' },
     ],
   },
   orange: {
@@ -135,7 +135,7 @@ const recipes = {
       { label: '葡萄柚汁', perJar: 150, unit: 'g' },
       { label: '細砂糖', perJar: 120, unit: 'g' },
       { label: '檸檬汁', perJar: 20, unit: 'cc' },
-      { label: '葡萄柚皮', perJar: 35, unit: 'g' },
+      { label: '葡萄柚皮', perJar: 40, unit: 'g' },
       { label: '葡萄柚果肉', perJar: 70, unit: 'g' },
     ],
   },
