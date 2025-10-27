@@ -95,7 +95,7 @@ const PER_JAR_FINISHED = 250 // 每罐成品重量 250g（顯示用）
 
 // 價格
 const PRICE = {
-  lemonPerPiece: 13,
+  lemonPerPiece: 8,
   orangePerPiece: 26,
   grapefruitPerPiece: 20,
   blueberryPerGram: 50 / 125,
