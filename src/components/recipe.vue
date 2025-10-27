@@ -98,7 +98,7 @@ const PRICE = {
   lemonPerPiece: 13,
   orangePerPiece: 26,
   grapefruitPerPiece: 20,
-  blueberryPerGram: 85 / 125,
+  blueberryPerGram: 50 / 125,
   sugarPerKg: 36,
 }
 PRICE.sugarPerGram = PRICE.sugarPerKg / 1000  // 0.044 元/g
