@@ -149,15 +149,15 @@ const recipes = {
     // 每罐顆數換算：葡萄柚 1 顆、柳橙 2 顆、蘋果 1 顆
     extraCounts: { grapefruit: 1, orange: 2, apple: 0.8 },
     ingredients: [
-      { label: '葡萄柚汁', perJar: 75, unit: 'g' },
+      { label: '葡萄柚汁', perJar: 50, unit: 'g' },
       { label: '葡萄柚果肉', perJar: 25, unit: 'g' },
       { label: '葡萄柚皮', perJar: 10, unit: 'g' },
 
-      { label: '柳橙汁', perJar: 75, unit: 'g' },
+      { label: '柳橙汁', perJar: 80, unit: 'g' },
       { label: '柳橙果肉', perJar: 25, unit: 'g' },
       { label: '柳橙皮', perJar: 10, unit: 'g' },
 
-      { label: '蘋果泥', perJar: 35, unit: 'g' },
+      { label: '蘋果泥', perJar: 45, unit: 'g' },
       { label: '蘋果果肉', perJar: 20, unit: 'g' },
 
       { label: '細砂糖', perJar: 120, unit: 'g' },
