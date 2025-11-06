@@ -26,22 +26,22 @@
         <span class="muted"> &nbsp;&nbsp;{{ finishedWeightCurrent }}g</span>
       </div>
 
-      <!-- 上排（水平）：把用到的材料全列出（含 0 也顯示） -->
+      <!-- 上排（水平）：只顯示「水果」（含 0 也顯示；不顯示糖） -->
       <div class="meta-row mt-1">
         <span v-for="m in metaRowList" :key="m.key">
           {{ m.label }} <strong>{{ m.value }}</strong> {{ m.unit }}
         </span>
       </div>
 
-      <!-- 細項食譜（當前口味總量） -->
+      <!-- 細項食譜（當前口味總量；保留完整細項清單） -->
       <ul class="list-disc pl-5 space-y-1 mt-2">
-        <li v-for="ing in totalIngredients" :key="ing.label">
+        <li v-for="(ing, idx) in totalIngredients" :key="ing.label + '-' + idx">
           {{ ing.label }}：<strong>{{ ing.total }}</strong> {{ ing.unit }}
         </li>
       </ul>
     </div>
 
-    <!-- 全部品項合計 + 價格（清單列 3 種柑橘 + 蘋果 + 藍莓 + 砂糖） -->
+    <!-- 全部品項合計 + 價格（3 柑橘 + 蘋果 + 藍莓 + 砂糖） -->
     <div class="rounded-lg border p-4">
       <h3 class="font-semibold mb-2">全部品項合計</h3>
       <ul class="list-disc pl-5 space-y-1">
@@ -87,7 +87,7 @@ import { ref, reactive, computed } from 'vue'
 /* ---------------- Config ---------------- */
 const MIN_JARS = 0
 const PER_JAR_FINISHED = 250 // 每罐成品重量 250g（顯示用）
-const SUGAR_PER_JAR = 120    // 每罐砂糖用量固定 120g
+const SUGAR_PER_JAR = 120    // 每罐砂糖用量固定 120g（上排不顯示，但合計仍計算）
 
 // 價格
 const PRICE = {
@@ -203,80 +203,43 @@ function fmt1(x) {
 }
 function fmtMainCountByKey(_key, x) { return fmt1(x) }
 
-const mainFruitCount = computed(function () {
-  if (!current.value.count) return null
-  const base = current.value.count.perJar * nCurrent.value
-  return fmtMainCountByKey(recipeKey.value, base)
-})
-const totalHeadWeight = computed(function () {
-  if (!current.value.headWeight) return null
-  return Math.round(current.value.headWeight.perJar * nCurrent.value + 1e-9)
-})
-
-// 當前口味砂糖（保留，雖然上排改為 metaRowList）
-const sugarCurrent = computed(function () { return Math.round(SUGAR_PER_JAR * nCurrent.value + 1e-9) })
-
 // 罐數旁邊顯示的成品總重量
 const finishedWeightCurrent = computed(function () { return PER_JAR_FINISHED * nCurrent.value })
 
-// 上排：把用到的材料全列出（含 0）
+// 上排：只顯示「水果」（不顯示糖；含 0）
 const metaRowList = computed(function () {
-  const out = []
   const n = nCurrent.value
+  const key = recipeKey.value
   const cfg = current.value
+  const out = []
 
-  // 主體（顆數或頭重）
+  // 1) 主要水果
   if (cfg.count) {
-    out.push({
-      key: 'main-count',
-      label: cfg.name,
-      value: fmt1(cfg.count.perJar * n),
-      unit: cfg.count.unit,
-    })
-  }
-  if (cfg.headWeight) {
-    out.push({
-      key: 'head-weight',
-      label: cfg.headWeight.label,
-      value: Math.round(cfg.headWeight.perJar * n + 1e-9),
-      unit: cfg.headWeight.unit,
-    })
+    // 柑橘類以顆數
+    out.push({ key: 'main-fruit', label: cfg.name, value: fmt1(cfg.count.perJar * n), unit: '顆' })
+  } else if (cfg.headWeight) {
+    // 藍莓以克
+    out.push({ key: 'main-blueberry', label: cfg.headWeight.label, value: Math.round(cfg.headWeight.perJar * n + 1e-9), unit: cfg.headWeight.unit })
   }
 
-  // 細項完整列出（汁、果肉、果皮、砂糖、檸檬汁…）
-  const list = cfg.ingredients || []
-  for (let i = 0; i < list.length; i++) {
-    const ing = list[i]
-    out.push({
-      key: 'ing-' + i,
-      label: ing.label,
-      value: Math.round(Number(ing.perJar) * n + 1e-9),
-      unit: ing.unit,
-    })
-  }
-
-  // 額外顆數（綜合水果）
+  // 2) 綜合水果：顆數（葡萄柚/柳橙/蘋果）
   if (cfg.extraCounts) {
-    if (cfg.extraCounts.grapefruit) {
-      out.push({ key: 'extra-grapefruit', label: '葡萄柚', value: fmt1(cfg.extraCounts.grapefruit * n), unit: '顆' })
-    }
-    if (cfg.extraCounts.orange) {
-      out.push({ key: 'extra-orange', label: '柳橙', value: fmt1(cfg.extraCounts.orange * n), unit: '顆' })
-    }
-    if (cfg.extraCounts.apple) {
-      out.push({ key: 'extra-apple', label: '蘋果', value: fmt1(cfg.extraCounts.apple * n), unit: '顆' })
-    }
+    const ec = cfg.extraCounts
+    if (ec.grapefruit) out.push({ key: 'mix-grapefruit', label: '葡萄柚', value: fmt1(ec.grapefruit * n), unit: '顆' })
+    if (ec.orange) out.push({ key: 'mix-orange', label: '柳橙', value: fmt1(ec.orange * n), unit: '顆' })
+    if (ec.apple) out.push({ key: 'mix-apple', label: '蘋果', value: fmt1(ec.apple * n), unit: '顆' })
   }
 
-  // 檸檬 0.5 顆/罐（凡含「檸檬汁」且不是檸檬口味本身）
-  const hasLemon = (cfg.ingredients || []).some(function (x) { return x.label === '檸檬汁' })
-  if (hasLemon && recipeKey.value !== 'lemon') {
+  // 3) 檸檬加成：凡含「檸檬汁」且不是檸檬口味本身 → +0.5 顆/罐
+  const hasLemonJuice = (cfg.ingredients || []).some(function (x) { return x.label === '檸檬汁' })
+  if (hasLemonJuice && key !== 'lemon') {
     out.push({ key: 'lemon-extra', label: '檸檬', value: fmt1(0.5 * n), unit: '顆' })
   }
 
   return out
 })
 
+// 當前口味的細項（保留完整明細）
 const totalIngredients = computed(function () {
   const list = current.value.ingredients || []
   const out = []
@@ -323,7 +286,7 @@ const totalsAll = computed(function () {
   }
 
   const fruitTotals = {
-    lemon: mainCounts.lemon + lemonExtra, // 檸檬主體 + 加成
+    lemon: mainCounts.lemon + lemonExtra,
     orange: mainCounts.orange,
     grapefruit: mainCounts.grapefruit,
     apple: mainCounts.apple,           // 顆
