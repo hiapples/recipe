@@ -92,11 +92,11 @@ const SUGAR_PER_JAR = 120    // 每罐砂糖用量固定 120g（上排不顯示�
 // 價格
 const PRICE = {
   lemonPerPiece: 18,
-  orangePerPiece: 7,
-  grapefruitPerPiece: 34,
-  applePerPiece: 33,                 // 蘋果 1 顆 20 元
+  orangePerPiece: 8,
+  grapefruitPerPiece: 30,
+  applePerPiece: 20,                
   blueberryPerGram: 46 / 125,
-  sugarPerKg: 44,
+  sugarPerKg: 36,
 }
 PRICE.sugarPerGram = PRICE.sugarPerKg / 1000  // 0.036 元/g
 
