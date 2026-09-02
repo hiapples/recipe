@@ -139,7 +139,7 @@ const recipes = {
     ingredients: [
       { label: '藍莓肉', perJar: 130, unit: 'g' },
       { label: '細砂糖', perJar: 120, unit: 'g' },
-      { label: '檸檬汁', perJar: 20, unit: 'cc' },
+      { label: '檸檬汁', perJar: 25, unit: 'cc' },
       { label: '藍莓果肉', perJar: 70, unit: 'g' },
     ],
   },
